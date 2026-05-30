@@ -4,7 +4,7 @@
 
 import { render, screen } from '@testing-library/react';
 import { expect, test, describe, vi, beforeEach } from 'vitest';
-import LessonPage from './page';
+import LessonPage, { generateStaticParams } from './page';
 
 // Mock Next.js navigation notFound function
 vi.mock('next/navigation', () => ({
@@ -13,7 +13,8 @@ vi.mock('next/navigation', () => ({
 
 // Mock the Supabase server client utility
 vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn().mockResolvedValue({
+  createClient: vi.fn(),
+  createPublicClient: vi.fn().mockReturnValue({
     from: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -27,7 +28,7 @@ describe('LessonPage Dynamic Route', () => {
   });
 
   test('renders the lesson from Supabase when found in the database', async () => {
-    const { createClient } = await import('@/lib/supabase/server');
+    const { createPublicClient } = await import('@/lib/supabase/server');
     const mockSupabaseLesson = {
       id: 'db-1',
       slug: 'react-fundamentals',
@@ -36,7 +37,7 @@ describe('LessonPage Dynamic Route', () => {
       phase_number: 1,
     };
     
-    vi.mocked(createClient).mockResolvedValueOnce({
+    vi.mocked(createPublicClient).mockReturnValueOnce({
       from: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -58,5 +59,25 @@ describe('LessonPage Dynamic Route', () => {
     
     await LessonPage({ params });
     expect(notFound).toHaveBeenCalled();
+  });
+
+  test('generateStaticParams fetches and maps slugs correctly', async () => {
+    const { createPublicClient } = await import('@/lib/supabase/server');
+    const mockSlugs = [
+      { slug: 'react-fundamentals' },
+      { slug: 'routing-and-layouts' },
+    ];
+
+    vi.mocked(createPublicClient).mockReturnValueOnce({
+      from: vi.fn().mockReturnThis(),
+      select: vi.fn().mockResolvedValue({ data: mockSlugs, error: null }),
+    } as any);
+
+    const params = await generateStaticParams();
+    
+    expect(params).toEqual([
+      { slug: 'react-fundamentals' },
+      { slug: 'routing-and-layouts' },
+    ]);
   });
 });

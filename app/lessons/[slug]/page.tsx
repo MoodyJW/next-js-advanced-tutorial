@@ -6,13 +6,16 @@
  * Next.js will pass the actual value of the URL segment into the page component via the `params` prop.
  * E.g., navigating to `/lessons/react-fundamentals` means `params.slug` will be `'react-fundamentals'`.
  * Since Next.js 15+, `params` and `searchParams` are Promises and must be awaited.
+ * 
+ * In this phase, we use `createPublicClient` (cookie-free) to allow Next.js to statically
+ * pre-render this page at build time. We export `generateStaticParams` to pre-generate all pages.
  */
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Toc, { TocHeading } from '@/components/Toc';
 import CodePlayground from '@/components/CodePlayground';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/server';
 
 /**
  * Rich detailed lesson section content mapped by slug.
@@ -113,6 +116,46 @@ function renderMarkdown(content: string) {
 }
 
 /**
+ * Statically pre-renders dynamic lesson pages at build time.
+ * 
+ * NEXT.JS CONCEPT:
+ * In the App Router, `generateStaticParams` is used to statically pre-render dynamic paths.
+ * Next.js calls this function during `next build` to compile the list of slugs
+ * into separate static HTML files, accelerating first-contentful-paint (FCP).
+ * 
+ * Since this runs at build time on the server, we use `createPublicClient` which is
+ * cookie-free to avoid dynamic rendering errors.
+ */
+export async function generateStaticParams() {
+  try {
+    const supabase = createPublicClient();
+    const { data: lessons } = await supabase
+      .from('lessons')
+      .select('slug');
+
+    if (!lessons || lessons.length === 0) {
+      return [
+        { slug: 'react-fundamentals' },
+        { slug: 'routing-and-layouts' },
+        { slug: 'server-components' }
+      ];
+    }
+
+    return lessons.map((lesson) => ({
+      slug: lesson.slug,
+    }));
+  } catch (err) {
+    console.error("Failed to generate static params at build time:", err);
+    // Fallback to static routes to avoid build failures if DB is down
+    return [
+      { slug: 'react-fundamentals' },
+      { slug: 'routing-and-layouts' },
+      { slug: 'server-components' }
+    ];
+  }
+}
+
+/**
  * Props for the dynamic page. 
  * In Next.js App Router, dynamic params are passed as a Promise.
  */
@@ -133,11 +176,11 @@ export default async function LessonPage({ params }: PageProps) {
   // 1. Await the params Promise
   const resolvedParams = await params;
   
-  // 2. Fetch data directly from Supabase
+  // 2. Fetch data directly from Supabase (using cookie-free public client for ISR support)
   let lesson = null;
 
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('lessons')
       .select('*')
