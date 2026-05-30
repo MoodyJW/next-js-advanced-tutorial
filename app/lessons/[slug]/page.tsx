@@ -17,7 +17,8 @@ import { Suspense } from 'react';
 import Toc, { TocHeading } from '@/components/Toc';
 import CodePlayground from '@/components/CodePlayground';
 import RelatedLessons, { RelatedLessonsSkeleton } from '@/components/RelatedLessons';
-import { createPublicClient } from '@/lib/supabase/server';
+import MarkCompleteButton from '@/components/MarkCompleteButton';
+import { createPublicClient, createClient } from '@/lib/supabase/server';
 
 /**
  * Rich detailed lesson section content mapped by slug.
@@ -231,6 +232,25 @@ export default async function LessonPage({ params }: PageProps) {
       return { id, text, level: isSub ? 3 : 2 };
     });
 
+  // 5. Fetch initial completed progress status from Supabase using cookie client
+  let initialCompleted = false;
+  try {
+    const supabaseCookie = await createClient();
+    const { data: { user } } = await supabaseCookie.auth.getUser();
+    const userId = user?.id || '00000000-0000-0000-0000-000000000000';
+
+    const { data: progress } = await supabaseCookie
+      .from('user_progress')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('lesson_id', lesson.id)
+      .maybeSingle();
+
+    initialCompleted = !!progress;
+  } catch (err) {
+    // Graceful fallback during build-time prerendering
+  }
+
   return (
     <article className="max-w-3xl mx-auto py-8">
       <div className="mb-8">
@@ -239,18 +259,23 @@ export default async function LessonPage({ params }: PageProps) {
         </Link>
       </div>
 
-      <header className="mb-10">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full uppercase tracking-wide dark:bg-blue-900 dark:text-blue-300">
-            Phase {lesson.phase_number}
-          </span>
+      <header className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-gray-200 pb-6 dark:border-gray-700">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full uppercase tracking-wide dark:bg-blue-900 dark:text-blue-300">
+              Phase {lesson.phase_number}
+            </span>
+          </div>
+          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white">
+            {lesson.title}
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300 border-l-4 border-blue-500 pl-4">
+            {lesson.description}
+          </p>
         </div>
-        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
-          {lesson.title}
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300 border-l-4 border-blue-500 pl-4">
-          {lesson.description}
-        </p>
+        <div className="flex-shrink-0">
+          <MarkCompleteButton lessonId={lesson.id} initialCompleted={initialCompleted} />
+        </div>
       </header>
 
       {/* Dynamic Client Component Table of Contents */}

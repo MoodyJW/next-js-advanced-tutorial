@@ -13,7 +13,15 @@ vi.mock('next/navigation', () => ({
 
 // Mock the Supabase server client utility
 vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(),
+  createClient: vi.fn().mockResolvedValue({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+    },
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+  }),
   createPublicClient: vi.fn().mockReturnValue({
     from: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
