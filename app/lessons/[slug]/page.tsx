@@ -13,8 +13,10 @@
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import Toc, { TocHeading } from '@/components/Toc';
 import CodePlayground from '@/components/CodePlayground';
+import RelatedLessons, { RelatedLessonsSkeleton } from '@/components/RelatedLessons';
 import { createPublicClient } from '@/lib/supabase/server';
 
 /**
@@ -261,6 +263,11 @@ export default async function LessonPage({ params }: PageProps) {
 
       {/* Interactive Sandpack Playground Client Component */}
       <CodePlayground code={`export default function Demo() {\n  return (\n    <div style={{ padding: 20, fontFamily: 'sans-serif' }}>\n      <h1>Hello from ${lesson.title}</h1>\n      <p>Try editing me!</p>\n    </div>\n  );\n}`} />
+
+      {/* Dynamic streamed RelatedLessons list */}
+      <Suspense fallback={<RelatedLessonsSkeleton />}>
+        <RelatedLessons currentSlug={lesson.slug} />
+      </Suspense>
     </article>
   );
 }
