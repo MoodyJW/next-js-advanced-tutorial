@@ -12,6 +12,8 @@
 import { notFound } from 'next/navigation';
 import { getLessonBySlug } from '@/lib/mock-data';
 import Link from 'next/link';
+import Toc from '@/components/Toc';
+import CodePlayground from '@/components/CodePlayground';
 
 /**
  * Props for the dynamic page. 
@@ -66,10 +68,15 @@ export default async function LessonPage({ params }: PageProps) {
         </p>
       </header>
 
-      {/* Render Markdown content. For now, it's just text. We will enhance this later. */}
+      {/* Client Component injected inside a Server Component */}
+      <Toc />
+
       <div className="prose dark:prose-invert prose-blue max-w-none whitespace-pre-wrap">
         {lesson.content_markdown}
       </div>
+
+      {/* Another Client Component for interactive playground */}
+      <CodePlayground code={`export default function Demo() {\n  return (\n    <div style={{ padding: 20, fontFamily: 'sans-serif' }}>\n      <h1>Hello from ${lesson.title}</h1>\n      <p>Try editing me!</p>\n    </div>\n  );\n}`} />
     </article>
   );
 }
