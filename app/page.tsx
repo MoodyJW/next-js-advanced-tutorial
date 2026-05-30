@@ -7,35 +7,41 @@
  */
 
 import LessonCard from "@/components/LessonCard";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * Renders the home page displaying a list of lessons.
  * 
  * @returns The home page React element.
  */
-export default function HomePage() {
-  // Hardcoded lessons for Phase 1. 
-  // In Phase 4, we will fetch these from Supabase!
-  const upcomingLessons = [
-    {
-      slug: 'react-fundamentals',
-      title: 'React Fundamentals for Next.js',
-      description: 'Review the React concepts necessary for modern Next.js development.',
-      phaseNumber: 1
-    },
-    {
-      slug: 'routing-and-layouts',
-      title: 'Routing and Layouts',
-      description: 'Learn how file-based routing works in the App Router.',
-      phaseNumber: 2
-    },
-    {
-      slug: 'server-components',
-      title: 'Server Components Demystified',
-      description: 'Understand the difference between Server and Client Components.',
-      phaseNumber: 3
+export default async function HomePage() {
+  let upcomingLessons: {
+    slug: string;
+    title: string;
+    description: string;
+    phaseNumber: number;
+  }[] = [];
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('lessons')
+      .select('slug, title, content_markdown, phase_number')
+      .order('phase_number', { ascending: true });
+
+    if (error) {
+      console.error("Supabase returned an error fetching lessons:", error);
+    } else if (data) {
+      upcomingLessons = data.map(l => ({
+        slug: l.slug,
+        title: l.title,
+        description: l.content_markdown.split('\n')[0].replace(/[#*`_\-]/g, '').trim().substring(0, 150) || 'Click to start this lesson.',
+        phaseNumber: l.phase_number
+      }));
     }
-  ];
+  } catch (err) {
+    console.error("Failed to fetch lessons from Supabase:", err);
+  }
 
   return (
     <div className="space-y-8">

@@ -10,10 +10,10 @@
  */
 
 import { notFound } from 'next/navigation';
-import { getLessonBySlug } from '@/lib/mock-data';
 import Link from 'next/link';
 import Toc from '@/components/Toc';
 import CodePlayground from '@/components/CodePlayground';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * Props for the dynamic page. 
@@ -36,14 +36,39 @@ export default async function LessonPage({ params }: PageProps) {
   // 1. Await the params Promise
   const resolvedParams = await params;
   
-  // 2. Fetch data directly in the component! (Server Component feature)
-  const lesson = await getLessonBySlug(resolvedParams.slug);
+  // 2. Fetch data directly from Supabase
+  let lesson = null;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('lessons')
+      .select('*')
+      .eq('slug', resolvedParams.slug)
+      .maybeSingle();
+
+    if (!error && data) {
+      lesson = {
+        id: data.id,
+        slug: data.slug,
+        title: data.title,
+        description: data.content_markdown.split('\n')[0].replace(/[#*`_\-]/g, '').trim().substring(0, 150) || 'Click to start this lesson.',
+        content_markdown: data.content_markdown,
+        phase_number: data.phase_number
+      };
+    } else if (error) {
+      console.error("Supabase returned an error fetching lesson:", error);
+    }
+  } catch (err) {
+    console.error("Failed to fetch lesson from Supabase:", err);
+  }
 
   // 3. Handle 404 automatically
   if (!lesson) {
     // Calling notFound() throws a special error that Next.js catches
     // and automatically renders the nearest `not-found.tsx` file.
     notFound();
+    return null;
   }
 
   return (

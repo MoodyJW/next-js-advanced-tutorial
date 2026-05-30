@@ -1,31 +1,62 @@
+/**
+ * Unit Tests for Dynamic Lesson Page
+ */
+
 import { render, screen } from '@testing-library/react';
-import { expect, test, describe, vi } from 'vitest';
+import { expect, test, describe, vi, beforeEach } from 'vitest';
 import LessonPage from './page';
 
-// Mock the next/navigation notFound function
+// Mock Next.js navigation notFound function
 vi.mock('next/navigation', () => ({
   notFound: vi.fn(),
 }));
 
+// Mock the Supabase server client utility
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: vi.fn().mockResolvedValue({
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+  }),
+}));
+
 describe('LessonPage Dynamic Route', () => {
-  test('renders the lesson when a valid slug is provided', async () => {
-    // 1. Arrange: Create the Promise that Next.js would pass in for params
-    const params = Promise.resolve({ slug: 'react-fundamentals' });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test('renders the lesson from Supabase when found in the database', async () => {
+    const { createClient } = await import('@/lib/supabase/server');
+    const mockSupabaseLesson = {
+      id: 'db-1',
+      slug: 'react-fundamentals',
+      title: 'React Fundamentals from Supabase',
+      content_markdown: '# DB Content Header\n\nDB Content Body',
+      phase_number: 1,
+    };
     
-    // 2. Act: Await the Server Component execution (since it's an async function returning JSX)
+    vi.mocked(createClient).mockResolvedValueOnce({
+      from: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: mockSupabaseLesson, error: null }),
+    } as any);
+
+    const params = Promise.resolve({ slug: 'react-fundamentals' });
     const ui = await LessonPage({ params });
     render(ui);
 
-    // 3. Assert: Verify the lesson title is rendered
-    expect(screen.getByText('React Fundamentals for Next.js')).toBeInTheDocument();
+    expect(screen.getByText('React Fundamentals from Supabase')).toBeInTheDocument();
+    expect(screen.getByText('DB Content Header')).toBeInTheDocument();
+    expect(screen.getByText(/# DB Content Header/)).toBeInTheDocument();
+    expect(screen.getByText(/DB Content Body/)).toBeInTheDocument();
   });
 
-  test('calls notFound when an invalid slug is provided', async () => {
+  test('calls notFound when the lesson is not found in the database', async () => {
     const { notFound } = await import('next/navigation');
     const params = Promise.resolve({ slug: 'invalid-slug-does-not-exist' });
     
-    // Act & Assert
-    // When the component calls notFound(), the mock function will be triggered.
     await LessonPage({ params });
     expect(notFound).toHaveBeenCalled();
   });
