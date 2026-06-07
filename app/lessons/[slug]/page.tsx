@@ -18,6 +18,7 @@ import Toc, { TocHeading } from '@/components/Toc';
 import CodePlayground from '@/components/CodePlayground';
 import RelatedLessons, { RelatedLessonsSkeleton } from '@/components/RelatedLessons';
 import MarkCompleteButton from '@/components/MarkCompleteButton';
+import CommentSection from '@/components/CommentSection';
 import { createPublicClient, createClient } from '@/lib/supabase/server';
 
 /**
@@ -247,7 +248,7 @@ export default async function LessonPage({ params }: PageProps) {
       .maybeSingle();
 
     initialCompleted = !!progress;
-  } catch (err) {
+  } catch {
     // Graceful fallback during build-time prerendering
   }
 
@@ -292,6 +293,11 @@ export default async function LessonPage({ params }: PageProps) {
       {/* Dynamic streamed RelatedLessons list */}
       <Suspense fallback={<RelatedLessonsSkeleton />}>
         <RelatedLessons currentSlug={lesson.slug} />
+      </Suspense>
+
+      {/* Dynamic Comment Section */}
+      <Suspense fallback={<div className="mt-16 animate-pulse h-32 bg-gray-100 dark:bg-gray-800 rounded-lg"></div>}>
+        <CommentSection lessonId={lesson.id} />
       </Suspense>
     </article>
   );

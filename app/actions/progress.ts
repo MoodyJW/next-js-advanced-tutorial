@@ -57,8 +57,8 @@ export async function toggleProgress(lessonId: string, currentStatus: boolean) {
     revalidatePath(`/lessons/[slug]`);
 
     return { success: true, completed: !currentStatus };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Failed to mutate lesson progress:", err);
-    return { success: false, error: err.message || 'Unknown server error occurred' };
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown server error occurred' };
   }
 }

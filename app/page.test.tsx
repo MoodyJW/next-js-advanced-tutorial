@@ -49,7 +49,7 @@ describe('HomePage Root Route', () => {
       from: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: mockSupabaseLessons, error: null }),
-    } as any);
+    } as unknown as ReturnType<typeof createClient>);
 
     const ui = await HomePage();
     render(ui);

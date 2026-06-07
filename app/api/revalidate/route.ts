@@ -46,8 +46,8 @@ async function handleRevalidation(request: NextRequest) {
     revalidatePath('/');
     revalidatePath('/lessons/[slug]');
     return NextResponse.json({ revalidated: true, path: 'all', now: Date.now() });
-  } catch (err: any) {
-    return NextResponse.json({ message: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ message: err instanceof Error ? err.message : 'Unknown Error' }, { status: 500 });
   }
 }
 

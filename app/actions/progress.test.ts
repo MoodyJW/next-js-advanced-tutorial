@@ -31,7 +31,7 @@ describe('Progress Server Action', () => {
       from: vi.fn().mockReturnValue({
         insert: mockInsert,
       }),
-    } as any);
+    } as unknown as ReturnType<typeof createClient>);
 
     const result = await toggleProgress('lesson-456', false);
     
@@ -62,7 +62,7 @@ describe('Progress Server Action', () => {
       from: vi.fn().mockReturnValue({
         delete: mockDelete,
       }),
-    } as any);
+    } as unknown as ReturnType<typeof createClient>);
 
     const result = await toggleProgress('lesson-456', true);
 

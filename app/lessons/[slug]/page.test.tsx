@@ -52,7 +52,7 @@ describe('LessonPage Dynamic Route', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({ data: mockSupabaseLesson, error: null }),
-    } as any);
+    } as unknown as ReturnType<typeof createPublicClient>);
 
     const params = Promise.resolve({ slug: 'react-fundamentals' });
     const ui = await LessonPage({ params });
@@ -81,7 +81,7 @@ describe('LessonPage Dynamic Route', () => {
     vi.mocked(createPublicClient).mockReturnValueOnce({
       from: vi.fn().mockReturnThis(),
       select: vi.fn().mockResolvedValue({ data: mockSlugs, error: null }),
-    } as any);
+    } as unknown as ReturnType<typeof createPublicClient>);
 
     const params = await generateStaticParams();
     

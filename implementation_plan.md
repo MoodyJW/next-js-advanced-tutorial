@@ -139,16 +139,19 @@ We will use multiple tables to support lessons, user progress tracking, and comm
 - **Comprehension Check:** What is the difference between a Server Action and an API Route?
 
 ### Phase 8: Middleware, Authentication & Comments Section
-- **Objective:** Run code before a request completes, manage auth sessions, and secure data access (RLS).
-- **Feature:** User login/signup, protecting routes via middleware, and a real-time lesson comment section for authenticated users.
+- **Objective:** Run code before a request completes using Next.js 16 Proxy, manage auth sessions using `@supabase/ssr`, and build a secure interactive comments section.
+- **Feature:** User login/signup forms, route protection via `proxy.ts`, session refreshes, and a real-time lesson comment section for authenticated users.
 - **Files to create/modify:**
-  - `middleware.ts` & `middleware.test.ts`
-  - `app/actions/auth.ts` & `app/actions/comments.ts`
-  - `components/CommentSection.tsx`
-- **Key Code Patterns:** `NextRequest`, `NextResponse.redirect`, reading session cookies in middleware, Supabase Row Level Security (RLS) setup.
-- **TS Patterns:** Typing middleware configuration and matchers.
-- **Pause & Explore:** Try submitting a comment while logged out or via Postman; watch Supabase RLS block the insertion.
-- **Comprehension Check:** Why is middleware uniquely suited for redirects based on authentication state?
+  - [NEW] [proxy.ts](file:///home/jay/Repos/next-js-advanced-tutorial/proxy.ts) & [proxy.test.ts](file:///home/jay/Repos/next-js-advanced-tutorial/proxy.test.ts): Custom routing session check.
+  - [NEW] [app/login/page.tsx](file:///home/jay/Repos/next-js-advanced-tutorial/app/login/page.tsx): Authentication page for login and signup.
+  - [NEW] [app/actions/auth.ts](file:///home/jay/Repos/next-js-advanced-tutorial/app/actions/auth.ts) & [app/actions/auth.test.ts](file:///home/jay/Repos/next-js-advanced-tutorial/app/actions/auth.test.ts): Auth server actions.
+  - [NEW] [app/actions/comments.ts](file:///home/jay/Repos/next-js-advanced-tutorial/app/actions/comments.ts) & [app/actions/comments.test.ts](file:///home/jay/Repos/next-js-advanced-tutorial/app/actions/comments.test.ts): Comment insertion and retrieval actions.
+  - [NEW] [components/CommentSection.tsx](file:///home/jay/Repos/next-js-advanced-tutorial/components/CommentSection.tsx) & [components/CommentSection.test.tsx](file:///home/jay/Repos/next-js-advanced-tutorial/components/CommentSection.test.tsx): Comments discussion UI.
+  - [MODIFY] [app/lessons/[slug]/page.tsx](file:///home/jay/Repos/next-js-advanced-tutorial/app/lessons/[slug]/page.tsx): Connect comments section at bottom of dynamic lessons.
+- **Key Code Patterns:** Next.js 16 `proxy` export signature, cookie management in server actions, dynamic forms with transitions, optimistic or immediate UI updates.
+- **TS Patterns:** Typing `NextRequest`, session credentials, custom comment shapes, and server action responses.
+- **Pause & Explore:** Attempt to view `/lessons/routing-and-layouts` while logged out and observe the seamless redirect to `/login?next=/lessons/routing-and-layouts`. Log in and verify redirect back to the lesson.
+- **Comprehension Check:** Why is Next.js 16 `proxy` executing in the Node.js runtime superior to Edge runtime for complex modular imports?
 
 ### Phase 9: Image, Font, and Metadata Optimization
 - **Objective:** Utilize Next.js built-in optimizations for performance and SEO.

@@ -11,6 +11,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { logout } from "@/app/actions/auth";
 
 // Initialize the Inter font (Google Fonts optimization built into Next.js)
 const inter = Inter({ subsets: ["latin"] });
@@ -30,11 +32,13 @@ export const metadata: Metadata = {
  * @param {React.ReactNode} props.children - The specific page content to render inside the layout.
  * @returns The HTML structure wrapping the application.
  */
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
   return (
     <html lang="en">
       <body className={`${inter.className} min-h-screen bg-gray-50 flex flex-col dark:bg-gray-900`}>
@@ -44,10 +48,21 @@ export default function RootLayout({
             <Link href="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
               Next.js Masterclass
             </Link>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <Link href="/about" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium">
                 About
               </Link>
+              {user ? (
+                <form action={logout}>
+                  <button type="submit" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium">
+                    Log Out
+                  </button>
+                </form>
+              ) : (
+                <Link href="/login" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
+                  Log In
+                </Link>
+              )}
             </div>
           </nav>
         </header>
