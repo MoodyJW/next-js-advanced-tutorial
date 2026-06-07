@@ -7,6 +7,7 @@
  */
 
 import LessonCard from "@/components/LessonCard";
+import LessonImage from "@/components/LessonImage";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -46,6 +47,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-8">
       <section className="py-10 border-b border-gray-200 dark:border-gray-700">
+        <LessonImage />
         <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
           Welcome to the Next.js Meta-Tutorial
         </h1>

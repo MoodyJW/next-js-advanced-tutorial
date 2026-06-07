@@ -40,7 +40,7 @@ export default function CodePlayground({ code }: CodePlaygroundProps) {
   }
 
   return (
-    <div className="my-8 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+    <div className="my-8 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm font-mono">
       <Sandpack 
         template="react" 
         theme="auto"

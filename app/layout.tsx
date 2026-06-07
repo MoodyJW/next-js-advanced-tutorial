@@ -8,14 +8,17 @@
  */
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/actions/auth";
 
 // Initialize the Inter font (Google Fonts optimization built into Next.js)
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+
+// Initialize Fira Code for code blocks
+const firaCode = Fira_Code({ subsets: ["latin"], variable: "--font-fira-code" });
 
 /**
  * Metadata API - Next.js automatically generates the `<head>` tags.
@@ -41,7 +44,7 @@ export default async function RootLayout({
   const { data: { user } } = await supabase.auth.getUser();
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-gray-50 flex flex-col dark:bg-gray-900`}>
+      <body className={`${inter.className} ${firaCode.variable} min-h-screen bg-gray-50 flex flex-col dark:bg-gray-900`}>
         {/* Shared Header across all routes */}
         <header className="bg-white border-b border-gray-200 py-4 px-6 dark:bg-gray-800 dark:border-gray-700">
           <nav className="max-w-4xl mx-auto flex items-center justify-between">

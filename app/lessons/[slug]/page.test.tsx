@@ -4,7 +4,7 @@
 
 import { render, screen } from '@testing-library/react';
 import { expect, test, describe, vi, beforeEach } from 'vitest';
-import LessonPage, { generateStaticParams } from './page';
+import LessonPage, { generateStaticParams, generateMetadata } from './page';
 
 // Mock Next.js navigation notFound function
 vi.mock('next/navigation', () => ({
@@ -29,6 +29,7 @@ vi.mock('@/lib/supabase/server', () => ({
     neq: vi.fn().mockReturnThis(),
     limit: vi.fn().mockResolvedValue({ data: null, error: null }),
     maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+    single: vi.fn().mockResolvedValue({ data: null, error: null }),
   }),
 }));
 
@@ -89,5 +90,24 @@ describe('LessonPage Dynamic Route', () => {
       { slug: 'react-fundamentals' },
       { slug: 'routing-and-layouts' },
     ]);
+  });
+
+  test('generateMetadata resolves correctly', async () => {
+    const { createPublicClient } = await import('@/lib/supabase/server');
+    vi.mocked(createPublicClient).mockReturnValueOnce({
+      from: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ 
+        data: { title: 'Test Lesson Title' }, 
+        error: null 
+      }),
+    } as unknown as ReturnType<typeof createPublicClient>);
+
+    const params = Promise.resolve({ slug: 'test-slug' });
+    const metadata = await generateMetadata({ params });
+    
+    expect(metadata.title).toBe('Test Lesson Title | Next.js Masterclass');
+    expect(metadata.openGraph?.title).toBe('Test Lesson Title');
   });
 });

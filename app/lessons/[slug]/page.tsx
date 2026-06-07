@@ -12,6 +12,7 @@
  */
 
 import { notFound } from 'next/navigation';
+import { getLessonBySlug } from '@/lib/data';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import Toc, { TocHeading } from '@/components/Toc';
@@ -19,6 +20,7 @@ import CodePlayground from '@/components/CodePlayground';
 import RelatedLessons, { RelatedLessonsSkeleton } from '@/components/RelatedLessons';
 import MarkCompleteButton from '@/components/MarkCompleteButton';
 import CommentSection from '@/components/CommentSection';
+import { type Metadata } from 'next';
 import { createPublicClient, createClient } from '@/lib/supabase/server';
 
 /**
@@ -157,6 +159,39 @@ export async function generateStaticParams() {
       { slug: 'server-components' }
     ];
   }
+}
+
+/**
+ * Generates dynamic SEO metadata for the specific lesson.
+ * 
+ * NEXT.JS CONCEPT:
+ * The `generateMetadata` function replaces `<Head>` tags. It runs on the server 
+ * before the page renders, allowing you to fetch data to generate dynamic titles,
+ * descriptions, and OpenGraph images for better SEO.
+ */
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: Promise<{ slug: string }> 
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const lesson = await getLessonBySlug(resolvedParams.slug);
+
+  if (!lesson) {
+    return {
+      title: 'Lesson Not Found | Next.js Masterclass'
+    };
+  }
+
+  return {
+    title: `${lesson.title} | Next.js Masterclass`,
+    description: `Learn about ${lesson.title} in our comprehensive Next.js Meta-Learning Tutorial.`,
+    openGraph: {
+      title: lesson.title,
+      description: `Deep dive into ${lesson.title} and master Next.js.`,
+      images: ['/images/banner.png'],
+    }
+  };
 }
 
 /**
